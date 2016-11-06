@@ -116,7 +116,7 @@ public class TeleopTest extends LinearOpMode {
 
             // Send telemetry message to signify robot running;
             telemetry.addData("arm",   "%.2f", armPosition);
-            telemetry.addData("claw",  "%.2f", clawPosition);
+//            telemetry.addData("claw",  "%.2f", clawPosition);
             telemetry.addData("left",  "%.2f", leftPower);
             telemetry.addData("right", "%.2f", rightPower);
             telemetry.update();
