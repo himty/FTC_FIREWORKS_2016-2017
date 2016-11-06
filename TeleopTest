@@ -60,14 +60,17 @@ public class TeleopTest extends LinearOpMode {
     /* Declare OpMode members. */
     HardwareTest   robot           = new HardwareTest();              // Use a K9'shardware
     double          armPosition     = robot.ARM_HOME;                   // Servo safe position
-    double          clawPosition    = robot.CLAW_HOME;                  // Servo safe position
-    final double    CLAW_SPEED      = 0.01 ;                            // sets rate to move servo
+//    double          clawPosition    = robot.CLAW_HOME;                  // Servo safe position
+//    final double    CLAW_SPEED      = 0.01 ;                            // sets rate to move servo
     final double    ARM_SPEED       = 0.01 ;                            // sets rate to move servo
 
+    final double MAX_JOYSTICK_VALUE = 1.414;
+
     @Override
-    public void runOpMode() {
-        double left;
-        double right;
+    public void runOpMode(){
+
+        double leftPower;
+        double rightPower;
 
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
@@ -85,10 +88,13 @@ public class TeleopTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
-            left = -gamepad1.left_stick_y;
-            right = -gamepad1.right_stick_y;
-            robot.leftMotor.setPower(left);
-            robot.rightMotor.setPower(right);
+            leftPower = gamepad1.right_stick_y+gamepad1.right_stick_x;
+            rightPower = gamepad1.right_stick_y-gamepad1.right_stick_x;
+            leftPower = (float)scaleInput(leftPower);
+            rightPower = (float)scaleInput(rightPower);
+            robot.leftMotor.setPower((double)leftPower);
+            robot.rightMotor.setPower((double) rightPower);
+            telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
 
             // Use gamepad Y & A raise and lower the arm
             if (gamepad1.a)
@@ -105,18 +111,47 @@ public class TeleopTest extends LinearOpMode {
             // Move both servos to new position.
             armPosition  = Range.clip(armPosition, robot.ARM_MIN_RANGE, robot.ARM_MAX_RANGE);
             robot.arm.setPosition(armPosition);
-            clawPosition = Range.clip(clawPosition, robot.CLAW_MIN_RANGE, robot.CLAW_MAX_RANGE);
+//            clawPosition = Range.clip(clawPosition, robot.CLAW_MIN_RANGE, robot.CLAW_MAX_RANGE);
             //robot.claw.setPosition(clawPosition);
 
             // Send telemetry message to signify robot running;
             telemetry.addData("arm",   "%.2f", armPosition);
             telemetry.addData("claw",  "%.2f", clawPosition);
-            telemetry.addData("left",  "%.2f", left);
-            telemetry.addData("right", "%.2f", right);
+            telemetry.addData("left",  "%.2f", leftPower);
+            telemetry.addData("right", "%.2f", rightPower);
             telemetry.update();
 
             // Pause for metronome tick.  40 mS each cycle = update 25 times a second.
             robot.waitForTick(40);
         }
+    }
+
+    double scaleInput(double dVal)  {
+        double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+                0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
+
+        // get the corresponding index for the scaleInput array.
+        int index = (int) ((dVal/MAX_JOYSTICK_VALUE) * 16.0); //number is now <= 1
+
+        // index should be positive.
+        if (index < 0) {
+            index = -index;
+        }
+
+        // index cannot exceed size of array minus 1.
+        if (index > 16) {
+            index = 16;
+        }
+
+        // get value from the array.
+        double dScale = 0.0;
+        if (dVal < 0) {
+            dScale = -scaleArray[index];
+        } else {
+            dScale = scaleArray[index];
+        }
+
+        // return scaled value.
+        return dScale;
     }
 }
