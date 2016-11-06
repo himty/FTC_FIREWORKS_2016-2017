@@ -103,10 +103,10 @@ public class TeleopTest extends LinearOpMode {
                 armPosition -= ARM_SPEED;
 
             // Use gamepad X & B to open and close the claw
-            if (gamepad1.x)
-                clawPosition += CLAW_SPEED;
-            else if (gamepad1.b)
-                clawPosition -= CLAW_SPEED;
+//            if (gamepad1.x)
+//                clawPosition += CLAW_SPEED;
+//            else if (gamepad1.b)
+//                clawPosition -= CLAW_SPEED;
 
             // Move both servos to new position.
             armPosition  = Range.clip(armPosition, robot.ARM_MIN_RANGE, robot.ARM_MAX_RANGE);
