@@ -16,7 +16,7 @@ public class AutonomousTest extends LinearOpMode{
     private ElapsedTime runtime = new ElapsedTime();
 
 
-    static final double     FORWARD_SPEED = -0.5;
+    static final double     FORWARD_SPEED = 0.5;
     static final double     TURN_SPEED    = 0.5;
     public void runOpMode() throws InterruptedException {
 
@@ -45,16 +45,25 @@ public class AutonomousTest extends LinearOpMode{
             idle();
         }
 
-//        // Step 2:  Spin right for 1.3 seconds
-//        robot.leftMotor.setPower(TURN_SPEED);
-//        robot.rightMotor.setPower(-TURN_SPEED);
-//        runtime.reset();
-//        while (opModeIsActive() && (runtime.seconds() < 1.3)) {
-//            telemetry.addData("Path", "Leg 2: %2.5f S Elapsed", runtime.seconds());
-//            telemetry.update();
-//            idle();
-//        }
-//
+        //Step 2:  Spin left for 1 seconds
+        robot.leftMotor.setPower(-TURN_SPEED);
+        robot.rightMotor.setPower(TURN_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 0.6)) {
+            telemetry.addData("Path", "Leg 2: %2.5f S Elapsed", runtime.seconds());
+            telemetry.update();
+            idle();
+        }
+
+        // Step 3: Drive forward for 1.5 second
+        robot.leftMotor.setPower(FORWARD_SPEED);
+        robot.rightMotor.setPower(FORWARD_SPEED);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+            telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
+            telemetry.update();
+            idle();
+        }
 //        // Step 3:  Drive Backwards for 1 Second
 //        robot.leftMotor.setPower(-FORWARD_SPEED);
 //        robot.rightMotor.setPower(-FORWARD_SPEED);
