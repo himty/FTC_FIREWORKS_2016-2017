@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Hardware;
  * Created by Queen on 10/30/16.
  */
 @Autonomous
-public class AutonomousTest extends LinearOpMode{
+public class AutonomousTestBall extends LinearOpMode{
     HardwareTest robot = new HardwareTest();
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -64,26 +64,8 @@ public class AutonomousTest extends LinearOpMode{
             telemetry.update();
             idle();
         }
-        // Step 3:  Turn left for 1 Second
-        robot.leftMotor.setPower(-TURN_SPEED);
-        robot.rightMotor.setPower(TURN_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 2.8)) {
-            telemetry.addData("Path", "Leg 3: %2.5f S Elapsed", runtime.seconds());
-            telemetry.update();
-            idle();
-        }
 
-        // Step 3: Drive forward for 1.5 second
-        robot.leftMotor.setPower(FORWARD_SPEED);
-        robot.rightMotor.setPower(FORWARD_SPEED);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 4)) {
-            telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
-
-            // Step 4:  Stop and close the claw.
+        // Step 4:  Stop and close the claw.
         robot.leftMotor.setPower(0);
         robot.rightMotor.setPower(0);
 

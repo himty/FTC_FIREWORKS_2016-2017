@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Hardware;
  * Created by Queen on 10/30/16.
  */
 @Autonomous
-public class AutonomousTest extends LinearOpMode{
+public class AutonomousTestBallRamp extends LinearOpMode{
     HardwareTest robot = new HardwareTest();
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -83,7 +83,7 @@ public class AutonomousTest extends LinearOpMode{
             telemetry.update();
         }
 
-            // Step 4:  Stop and close the claw.
+        // Step 4:  Stop and close the claw.
         robot.leftMotor.setPower(0);
         robot.rightMotor.setPower(0);
 
