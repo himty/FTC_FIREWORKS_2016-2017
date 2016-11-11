@@ -107,14 +107,19 @@ public class TeleopTest extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            leftPower = gamepad1.right_stick_y - gamepad1.right_stick_x;
-            rightPower = gamepad1.right_stick_y + gamepad1.right_stick_x;
-            telemetry.addData("nom", String.format("%.2f", gamepad1.right_stick_y));
-            leftPower = (float) scaleInput(leftPower);
-            rightPower = (float) scaleInput(rightPower);
+            //drive train
+            leftPower = (float) scaleInput(gamepad1.right_stick_y - gamepad1.right_stick_x);
+            rightPower = (float) scaleInput(gamepad1.right_stick_y + gamepad1.right_stick_x);
+            if (gamepad1.right_bumper){
+                leftPower /= 5;
+                rightPower /= 5;
+            }
             robot.leftMotor.setPower((double) -1*leftPower);
-            robot.rightMotor.setPower((double) -1*rightPower);
+            robot.rightMotor.setPower((double) -1 * rightPower);
             telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
+
+            //linear slide
+//            robot.linearSlide.setPower((double)scaleInput(gamepad1.left_stick_y));
 
             //arm movement
             if (gamepad1.a && armStatus.equals(servoStatus.HOLD)){
@@ -148,8 +153,8 @@ public class TeleopTest extends LinearOpMode {
                 }
                 bPusherTime.reset();
             }
-            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 1)  //going left
-                    || (bPusherStatus.equals(servoStatus.BALL_RIGHT)&&bPusherTime.time() > 2)){ //going right
+            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 1*0.6-0.06)  //going left
+                    || (bPusherStatus.equals(servoStatus.BALL_RIGHT)&&bPusherTime.time() > 2*0.6)){ //going right
                 bPusherStatus = servoStatus.HOLD;
                 robot.beaconPusher.setPosition(servoStatus.HOLD.value);
             }
