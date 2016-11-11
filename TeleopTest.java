@@ -35,6 +35,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -57,12 +58,30 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="TeleopTest", group="K9bot")
 public class TeleopTest extends LinearOpMode {
 
+    enum servoStatus  {
+        ARM_UP(0.45), ARM_DOWN(0.54),
+        BALL_LEFT(0.45), BALL_RIGHT(0.45),
+        HOLD(0.50);
+
+        public final double value;
+        servoStatus(double v){
+            this.value = v;
+        }
+    };
+
+    public enum servoPosition{
+        ARM_DOWN, ARM_UP,
+        BALL_LEFT, BALL_RIGHT;
+    }
+
     /* Declare OpMode members. */
-    HardwareTest   robot           = new HardwareTest();              // Use a K9'shardware
-    double          armPosition     = robot.ARM_HOME;                   // Servo safe position
-//    double          clawPosition    = robot.CLAW_HOME;                  // Servo safe position
-//    final double    CLAW_SPEED      = 0.01 ;                            // sets rate to move servo
-    final double    ARM_SPEED       = 0.01 ;                            // sets rate to move servo
+    HardwareTest    robot               = new HardwareTest();              // Use a K9'shardware
+    servoStatus   armStatus           = servoStatus.HOLD;                   // Servo safe position
+    servoStatus   bPusherStatus       = servoStatus.HOLD;                  // Servo safe position
+    servoPosition   armPosition         = servoPosition.ARM_UP;
+    servoPosition   bPusherPosition     = servoPosition.BALL_LEFT;
+    ElapsedTime     armTime             = new ElapsedTime(1000); //starting time is high so doesn't mess with timing
+    ElapsedTime     bPusherTime         = new ElapsedTime(1000);
 
     final double MAX_JOYSTICK_VALUE = 1.414;
 
@@ -81,42 +100,63 @@ public class TeleopTest extends LinearOpMode {
         telemetry.addData("Say", "Hello Driver");    //
         telemetry.update();
 
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
-            leftPower = gamepad1.right_stick_y+gamepad1.right_stick_x;
-            rightPower = gamepad1.right_stick_y-gamepad1.right_stick_x;
-            leftPower = (float)scaleInput(leftPower);
-            rightPower = (float)scaleInput(rightPower);
-            robot.leftMotor.setPower((double)leftPower);
+            leftPower = gamepad1.right_stick_y - gamepad1.right_stick_x;
+            rightPower = gamepad1.right_stick_y + gamepad1.right_stick_x;
+            telemetry.addData("nom", String.format("%.2f", leftPower));
+            leftPower = (float) scaleInput(leftPower);
+            rightPower = (float) scaleInput(rightPower);
+            robot.leftMotor.setPower((double) leftPower);
             robot.rightMotor.setPower((double) rightPower);
             telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
 
-            // Use gamepad Y & A raise and lower the arm
-            if (gamepad1.a)
-                armPosition += ARM_SPEED;
-            else if (gamepad1.y)
-                armPosition -= ARM_SPEED;
+            //arm movement
+            if (gamepad1.a && armStatus.equals(servoStatus.HOLD)){
+                if (armPosition.equals(servoPosition.ARM_DOWN)){
+                    armStatus = servoStatus.ARM_UP;
+                    armPosition = servoPosition.ARM_UP;
+                    robot.arm.setPosition(servoStatus.ARM_UP.value);
+                } else {
+                    armStatus = servoStatus.ARM_DOWN;
+                    armPosition = servoPosition.ARM_DOWN;
+                    robot.arm.setPosition(servoStatus.ARM_DOWN.value);
+                }
+                armTime.reset();
+            }
+            if ((armStatus.equals(servoStatus.ARM_DOWN)&&armTime.time() > 0.8)  //going down
+                    || (armStatus.equals(servoStatus.ARM_UP)&&armTime.time() > 1.3)){ //going up
+                armStatus = servoStatus.HOLD;
+                robot.arm.setPosition(servoStatus.HOLD.value);
+            }
 
-            // Use gamepad X & B to open and close the claw
-//            if (gamepad1.x)
-//                clawPosition += CLAW_SPEED;
-//            else if (gamepad1.b)
-//                clawPosition -= CLAW_SPEED;
-
-            // Move both servos to new position.
-            armPosition  = Range.clip(armPosition, robot.ARM_MIN_RANGE, robot.ARM_MAX_RANGE);
-            robot.arm.setPosition(armPosition);
-//            clawPosition = Range.clip(clawPosition, robot.CLAW_MIN_RANGE, robot.CLAW_MAX_RANGE);
-            //robot.claw.setPosition(clawPosition);
+            //ball holder movement
+            if (gamepad1.b && bPusherStatus.equals(servoStatus.HOLD)){
+                if (bPusherPosition.equals(servoPosition.BALL_LEFT)){
+                    bPusherStatus = servoStatus.BALL_RIGHT;
+                    bPusherPosition = servoPosition.BALL_RIGHT;
+                    robot.beaconPusher.setPosition(servoStatus.BALL_RIGHT.value);
+                } else {
+                    bPusherStatus = servoStatus.BALL_LEFT;
+                    bPusherPosition = servoPosition.BALL_LEFT;
+                    robot.beaconPusher.setPosition(servoStatus.BALL_LEFT.value);
+                }
+                bPusherTime.reset();
+            }
+            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 0.8)  //going left
+                    || (bPusherStatus.equals(servoStatus.BALL_RIGHT)&&bPusherTime.time() > 2)){ //going right
+                bPusherStatus = servoStatus.HOLD;
+                robot.beaconPusher.setPosition(servoStatus.HOLD.value);
+            }
 
             // Send telemetry message to signify robot running;
-            telemetry.addData("arm",   "%.2f", armPosition);
-//            telemetry.addData("claw",  "%.2f", clawPosition);
+//            telemetry.addData("arm",   "%.2f", armPosition);
+//            telemetry.addData("bpusher",   "%.2f", bPusherPosition);
             telemetry.addData("left",  "%.2f", leftPower);
             telemetry.addData("right", "%.2f", rightPower);
             telemetry.update();
