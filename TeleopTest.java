@@ -58,9 +58,9 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="TeleopTest", group="K9bot")
 public class TeleopTest extends LinearOpMode {
 
-    enum servoStatus  {
-        ARM_UP(0.45), ARM_DOWN(0.54),
-        BALL_LEFT(0.45), BALL_RIGHT(0.45),
+    public enum servoStatus  {
+        ARM_UP(0.54), ARM_DOWN(0.45),
+        BALL_LEFT(0.45), BALL_RIGHT(0.54),
         HOLD(0.50);
 
         public final double value;
@@ -83,7 +83,7 @@ public class TeleopTest extends LinearOpMode {
     ElapsedTime     armTime             = new ElapsedTime(1000); //starting time is high so doesn't mess with timing
     ElapsedTime     bPusherTime         = new ElapsedTime(1000);
 
-    final double MAX_JOYSTICK_VALUE = 1.414;
+    final double MAX_JOYSTICK_VALUE = 1;
 
     @Override
     public void runOpMode(){
@@ -109,11 +109,11 @@ public class TeleopTest extends LinearOpMode {
 
             leftPower = gamepad1.right_stick_y - gamepad1.right_stick_x;
             rightPower = gamepad1.right_stick_y + gamepad1.right_stick_x;
-            telemetry.addData("nom", String.format("%.2f", leftPower));
+            telemetry.addData("nom", String.format("%.2f", gamepad1.right_stick_y));
             leftPower = (float) scaleInput(leftPower);
             rightPower = (float) scaleInput(rightPower);
-            robot.leftMotor.setPower((double) leftPower);
-            robot.rightMotor.setPower((double) rightPower);
+            robot.leftMotor.setPower((double) -1*leftPower);
+            robot.rightMotor.setPower((double) -1*rightPower);
             telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
 
             //arm movement
@@ -130,7 +130,7 @@ public class TeleopTest extends LinearOpMode {
                 armTime.reset();
             }
             if ((armStatus.equals(servoStatus.ARM_DOWN)&&armTime.time() > 0.8)  //going down
-                    || (armStatus.equals(servoStatus.ARM_UP)&&armTime.time() > 1.3)){ //going up
+                    || (armStatus.equals(servoStatus.ARM_UP)&&armTime.time() > 2)){ //going up
                 armStatus = servoStatus.HOLD;
                 robot.arm.setPosition(servoStatus.HOLD.value);
             }
@@ -148,7 +148,7 @@ public class TeleopTest extends LinearOpMode {
                 }
                 bPusherTime.reset();
             }
-            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 0.8)  //going left
+            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 1)  //going left
                     || (bPusherStatus.equals(servoStatus.BALL_RIGHT)&&bPusherTime.time() > 2)){ //going right
                 bPusherStatus = servoStatus.HOLD;
                 robot.beaconPusher.setPosition(servoStatus.HOLD.value);
