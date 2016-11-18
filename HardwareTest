@@ -30,10 +30,9 @@ public class HardwareTest
     public DcMotor  leftMotor   = null;
     public DcMotor  rightMotor  = null;
     public DcMotor  linearSlide = null;
+    public DcMotor  ballHolder  = null;
     public Servo    arm         = null;
     public Servo    beaconPusher= null;
-    public Servo    ballHolderLeft = null;
-    public Servo    ballHolderRight = null;
 
     /* Local OpMode members. */
     HardwareMap hwMap  = null;
@@ -54,6 +53,7 @@ public class HardwareTest
         rightMotor.setDirection(DcMotor.Direction.FORWARD);
         leftMotor.setDirection(DcMotor.Direction.REVERSE);
         linearSlide = hwMap.dcMotor.get("linear_slide");
+        ballHolder = hwMap.dcMotor.get("ball_holder");
 
 
         // Set all motors to zero power
@@ -67,17 +67,12 @@ public class HardwareTest
         rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         linearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+
         // Define and initialize ALL installed servos.
         arm = hwMap.servo.get("arm");
         beaconPusher = hwMap.servo.get("beacon_pusher");
-        ballHolderLeft = hwMap.servo.get("ball_holder_left");
-        ballHolderRight = hwMap.servo.get("ball_holder_right");
-        arm.setPosition(TeleopTest.servoStatus.HOLD.value);
-        beaconPusher.setPosition(TeleopTest.servoStatus.HOLD.value);
-        ballHolderLeft.setPosition(TeleopTest.servoStatus.HOLD.value);
-        ballHolderRight.setPosition(TeleopTest.servoStatus.HOLD.value);
-        ballHolderLeft.setDirection(Servo.Direction.FORWARD);
-        ballHolderRight.setDirection(Servo.Direction.REVERSE);
+        arm.setPosition(0.5);
+        beaconPusher.setPosition(0.5);
     }
 
     /***
