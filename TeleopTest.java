@@ -26,58 +26,26 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import android.graphics.Path;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
-
-
-/**
- * This OpMode uses the common HardwareK9bot class to define the devices on the robot.
- * All device access is managed through the HardwareK9bot class. (See this class for device names)
- * The code is structured as a LinearOpMode
- *
- * This particular OpMode executes a basic Tank Drive Teleop for the K9 bot
- * It raises and lowers the arm using the Gamepad Y and A buttons respectively.
- * It also opens and closes the claw slowly using the X and B buttons.
- *
- * Note: the configuration of the servos is such that
- * as the arm servo approaches 0, the arm position moves up (away from the floor).
- * Also, as the claw servo approaches 0, the claw opens up (drops the game element).
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
-
-@TeleOp(name="TeleopTestLinear", group="K9bot")
+@TeleOp(name="TeleopTest", group="FIREWORKS")
 public class TeleopTest extends LinearOpMode {
-
-    public enum servoStatus  {
-        ARM_UP(0.54), ARM_DOWN(0.45),
-        BALL_LEFT(0.45), BALL_RIGHT(0.54),
-        HOLD(0.50);
-
-        public final double value;
-        servoStatus(double v){
-            this.value = v;
-        }
-    };
-
-    public enum servoPosition{
-        ARM_DOWN, ARM_UP,
-        BALL_LEFT, BALL_RIGHT;
-    }
-
     /* Declare OpMode members. */
     HardwareTest    robot               = new HardwareTest();              // Use a K9'shardware
-    servoStatus   armStatus           = servoStatus.HOLD;                   // Servo safe position
-    servoStatus   bPusherStatus       = servoStatus.HOLD;                  // Servo safe position
-    servoPosition   armPosition         = servoPosition.ARM_UP;
-    servoPosition   bPusherPosition     = servoPosition.BALL_LEFT;
     ElapsedTime     armTime             = new ElapsedTime(1000); //starting time is high so doesn't mess with timing
     ElapsedTime     bPusherTime         = new ElapsedTime(1000);
+    ElapsedTime     ballHolderTime         = new ElapsedTime(1000);
+
+    final double HOLD_SERVO = 0.5;
+    final double ARM_UP_SERVO = 0.54;
+    final double ARM_DOWN_SERVO = 0.45;
+    final double BALL_LEFT_SERVO = 0.45;
+    final double BALL_RIGHT_SERVO = 0.54;
 
     final double MAX_JOYSTICK_VALUE = 1;
 
@@ -107,61 +75,52 @@ public class TeleopTest extends LinearOpMode {
             //drive train
             leftPower = (float) scaleInput(gamepad1.right_stick_y - gamepad1.right_stick_x);
             rightPower = (float) scaleInput(gamepad1.right_stick_y + gamepad1.right_stick_x);
-            linearPower = (float) scaleInput(-1*gamepad2.left_stick_y);
-            
+
             if (gamepad1.right_bumper){
                 leftPower /= 5;
                 rightPower /= 5;
             }
             robot.leftMotor.setPower((double) -1*leftPower);
             robot.rightMotor.setPower((double) -1 * rightPower);
-            //robot.linearSlide.setPower((double) -1 * linearPower);
-
             telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
+
             //linear slide
+            linearPower = (float) scaleInput(-1*gamepad2.left_stick_y);
             robot.linearSlide.setPower((double)linearPower);
 
             //arm movement
-            if (gamepad1.a && armStatus.equals(servoStatus.HOLD)){
-                if (armPosition.equals(servoPosition.ARM_DOWN)){
-                    armStatus = servoStatus.ARM_UP;
-                    armPosition = servoPosition.ARM_UP;
-                    robot.arm.setPosition(servoStatus.ARM_UP.value);
+            if (gamepad1.a && robot.arm.getPosition() == HOLD_SERVO){
+                if (robot.arm.getPosition() == ARM_DOWN_SERVO){
+                    robot.arm.setPosition(ARM_UP_SERVO);
                 } else {
-                    armStatus = servoStatus.ARM_DOWN;
-                    armPosition = servoPosition.ARM_DOWN;
-                    robot.arm.setPosition(servoStatus.ARM_DOWN.value);
+                    robot.arm.setPosition(ARM_DOWN_SERVO);
                 }
                 armTime.reset();
             }
-            if ((armStatus.equals(servoStatus.ARM_DOWN)&&armTime.time() > 0.8)  //going down
-                    || (armStatus.equals(servoStatus.ARM_UP)&&armTime.time() > 2)){ //going up
-                armStatus = servoStatus.HOLD;
-                robot.arm.setPosition(servoStatus.HOLD.value);
+            if ((robot.arm.getPosition()==ARM_DOWN_SERVO&&armTime.time() > 0.8)  //going down
+                    || (robot.arm.getPosition()==ARM_UP_SERVO&&armTime.time() > 2)){ //going up
+                robot.arm.setPosition(HOLD_SERVO);
             }
 
-            //ball holder movement
-            if (gamepad1.b && bPusherStatus.equals(servoStatus.HOLD)){
-                if (bPusherPosition.equals(servoPosition.BALL_LEFT)){
-                    bPusherStatus = servoStatus.BALL_RIGHT;
-                    bPusherPosition = servoPosition.BALL_RIGHT;
-                    robot.beaconPusher.setPosition(servoStatus.BALL_RIGHT.value);
+            //beacon pusher movement
+            if (gamepad1.b && robot.beaconPusher.getPosition() == HOLD_SERVO){
+                if (robot.beaconPusher.getPosition() == BALL_LEFT_SERVO){
+                    robot.beaconPusher.setPosition(BALL_RIGHT_SERVO);
                 } else {
-                    bPusherStatus = servoStatus.BALL_LEFT;
-                    bPusherPosition = servoPosition.BALL_LEFT;
-                    robot.beaconPusher.setPosition(servoStatus.BALL_LEFT.value);
+                    robot.beaconPusher.setPosition(BALL_LEFT_SERVO);
                 }
                 bPusherTime.reset();
             }
-            if ((bPusherStatus.equals(servoStatus.BALL_LEFT)&&bPusherTime.time() > 1*0.6-0.06)  //going left
-                    || (bPusherStatus.equals(servoStatus.BALL_RIGHT)&&bPusherTime.time() > 2*0.6)){ //going right
-                bPusherStatus = servoStatus.HOLD;
-                robot.beaconPusher.setPosition(servoStatus.HOLD.value);
+            if ((robot.beaconPusher.getPosition()==BALL_LEFT_SERVO&&bPusherTime.time() > 1*0.6-0.06)  //going left
+                    || (robot.beaconPusher.getPosition()==BALL_RIGHT_SERVO&&bPusherTime.time() > 2*0.6)){ //going right
+                robot.beaconPusher.setPosition(HOLD_SERVO);
             }
 
+            //ball holder movement
+            robot.ballHolder.setPower(gamepad2.left_stick_y);
+//
             // Send telemetry message to signify robot running;
-//            telemetry.addData("arm",   "%.2f", armPosition);
-//            telemetry.addData("bpusher",   "%.2f", bPusherPosition);
+            telemetry.addData("Ball Holder Power",   "%.2f", gamepad2.left_stick_y);
             telemetry.addData("left",  "%.2f", leftPower);
             telemetry.addData("right", "%.2f", rightPower);
             telemetry.update();
