@@ -1,29 +1,3 @@
-/*
-Copyright (c) 2016 Robert Atkinson
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification,
-are permitted (subject to the limitations in the disclaimer below) provided that
-the following conditions are met:
-Redistributions of source code must retain the above copyright notice, this list
-of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this
-list of conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.
-Neither the name of Robert Atkinson nor the names of his contributors may be used to
-endorse or promote products derived from this software without specific prior
-written permission.
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
-LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESSFOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Path;
@@ -37,13 +11,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class TeleopTest extends LinearOpMode {
     /* Declare OpMode members. */
     HardwareTest    robot               = new HardwareTest();              // Use a K9'shardware
-    ElapsedTime     armTime             = new ElapsedTime(1000); //starting time is high so doesn't mess with timing
+    ElapsedTime     ballDropperTime     = new ElapsedTime(1000); //starting time is high so doesn't mess with timing
     ElapsedTime     bPusherTime         = new ElapsedTime(1000);
-    ElapsedTime     ballHolderTime         = new ElapsedTime(1000);
 
     final double HOLD_SERVO = 0.5;
-    final double ARM_UP_SERVO = 0.54;
-    final double ARM_DOWN_SERVO = 0.45;
+    final double BALL_DROPPER_UP_SERVO = 0.1;
+    final double BALL_DROPPER_DOWN_SERVO = 0.9;
     final double BALL_LEFT_SERVO = 0.45;
     final double BALL_RIGHT_SERVO = 0.54;
 
@@ -69,12 +42,13 @@ public class TeleopTest extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        robot.ballDropper.setPosition(0.1);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             //drive train
-            leftPower = (float) scaleInput(gamepad1.right_stick_y - gamepad1.right_stick_x);
-            rightPower = (float) scaleInput(gamepad1.right_stick_y + gamepad1.right_stick_x);
+            leftPower = (float) scaleInput(gamepad1.right_stick_y + gamepad1.right_stick_x);
+            rightPower = (float) scaleInput(gamepad1.right_stick_y - gamepad1.right_stick_x);
 
             if (gamepad1.right_bumper){
                 leftPower /= 5;
@@ -85,21 +59,18 @@ public class TeleopTest extends LinearOpMode {
             telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
 
             //linear slide
-            linearPower = (float) scaleInput(-1*gamepad2.left_stick_y);
+            linearPower = (float) scaleInput(-1*gamepad2.right_stick_y);
             robot.linearSlide.setPower((double)linearPower);
 
-            //arm movement
-            if (gamepad1.a && robot.arm.getPosition() == HOLD_SERVO){
-                if (robot.arm.getPosition() == ARM_DOWN_SERVO){
-                    robot.arm.setPosition(ARM_UP_SERVO);
+            //ball dropper movement
+            if (gamepad2.y && ballDropperTime.seconds() > 0.5){
+                if (robot.ballDropper.getPosition() == BALL_DROPPER_DOWN_SERVO){
+                    robot.ballDropper.setPosition(BALL_DROPPER_UP_SERVO);
+                    ballDropperTime.reset();
                 } else {
-                    robot.arm.setPosition(ARM_DOWN_SERVO);
+                    robot.ballDropper.setPosition(BALL_DROPPER_DOWN_SERVO);
+                    ballDropperTime.reset();
                 }
-                armTime.reset();
-            }
-            if ((robot.arm.getPosition()==ARM_DOWN_SERVO&&armTime.time() > 0.8)  //going down
-                    || (robot.arm.getPosition()==ARM_UP_SERVO&&armTime.time() > 2)){ //going up
-                robot.arm.setPosition(HOLD_SERVO);
             }
 
             //beacon pusher movement
@@ -120,7 +91,8 @@ public class TeleopTest extends LinearOpMode {
             robot.ballHolder.setPower(gamepad2.left_stick_y);
 //
             // Send telemetry message to signify robot running;
-            telemetry.addData("Ball Holder Power",   "%.2f", gamepad2.left_stick_y);
+            telemetry.addData("Ball Dropper Position",   "%.2f", robot.ballDropper.getPosition());
+            telemetry.addData("true/false", Double.isNaN(robot.ballDropper.getPosition()));
             telemetry.addData("left",  "%.2f", leftPower);
             telemetry.addData("right", "%.2f", rightPower);
             telemetry.update();
