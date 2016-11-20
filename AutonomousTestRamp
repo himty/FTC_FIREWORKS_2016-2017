@@ -11,13 +11,13 @@ import com.qualcomm.robotcore.util.Hardware;
  * Created by Queen on 10/30/16.
  */
 @Autonomous
-public class AutonomoustestRamp extends LinearOpMode{
+public class AutonomousTestRamp extends LinearOpMode{
     HardwareTest robot = new HardwareTest();
     private ElapsedTime runtime = new ElapsedTime();
 
 
-    static final double     FORWARD_SPEED = 0.5;
-    static final double     TURN_SPEED    = 0.5;
+    static final double     FORWARD_SPEED = -1;
+    static final double     TURN_SPEED    = -1;
     public void runOpMode() throws InterruptedException {
 
         /*
@@ -39,7 +39,7 @@ public class AutonomoustestRamp extends LinearOpMode{
         robot.leftMotor.setPower(FORWARD_SPEED);
         robot.rightMotor.setPower(FORWARD_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 2)) {
+        while (opModeIsActive() && (runtime.seconds() < 1)) {
             telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
             telemetry.update();
             idle();
@@ -49,7 +49,7 @@ public class AutonomoustestRamp extends LinearOpMode{
         robot.leftMotor.setPower(-TURN_SPEED);
         robot.rightMotor.setPower(TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+        while (opModeIsActive() && (runtime.seconds() < 1.6)) {
             telemetry.addData("Path", "Leg 2: %2.5f S Elapsed", runtime.seconds());
             telemetry.update();
             idle();
@@ -59,7 +59,7 @@ public class AutonomoustestRamp extends LinearOpMode{
         robot.leftMotor.setPower(FORWARD_SPEED);
         robot.rightMotor.setPower(FORWARD_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 4)) {
+        while (opModeIsActive() && (runtime.seconds() < 3)) {
             telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
             telemetry.update();
             idle();
