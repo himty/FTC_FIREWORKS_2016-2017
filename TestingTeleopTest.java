@@ -30,6 +30,7 @@ import android.os.Environment;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CompassSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.io.File;
@@ -53,7 +54,6 @@ public class TestingTeleopTest extends LinearOpMode {
     final double MAX_JOYSTICK_VALUE = 1;
 
     PrintWriter pw = null;
-    String tempString = " ";
 
     @Override
     public void runOpMode(){
@@ -67,28 +67,51 @@ public class TestingTeleopTest extends LinearOpMode {
          */
         robot.init(hardwareMap);
 
+        //init files
+        File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/LearningData");
+        if(!directory.exists()){
+            directory.mkdir();
+        }
+        int count = 1;
+        File learningFile;
+        while (true){
+            learningFile = new File(directory.getAbsolutePath() + "/learning_data"+count+".txt");
+            if(!learningFile.exists()) {
+                break;
+            }
+            count++;
+        }
+
+        try{
+            pw = new PrintWriter(new FileWriter(learningFile, true)); //true = append to file
+        } catch (Exception e) {
+            e.printStackTrace();
+            telemetry.addData("PrintWriter Intialize Error", e.getStackTrace());
+            telemetry.update();
+        }
+
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Say", "Hello Driver");    //
         telemetry.update();
 
-        //init files
-        File file;
-        File learningFile = Environment.getExternalStorageDirectory();
-        String filename = learningFile.getAbsolutePath();
-        filename = filename + "/learning_data.txt";
-        try{
-            pw = new PrintWriter(new FileWriter(new File (filename), true)); //true = append to file
-            tempString = "good";
-        } catch (Exception e) {
-            e.printStackTrace();
-            telemetry.addData("testt", filename+ " " + e.getStackTrace());
+        //calibrate compass sensor
+        robot.compSensor.setMode(CompassSensor.CompassMode.CALIBRATION_MODE);
+        bPusherTime.reset();
+        while (bPusherTime.seconds() < 4){
+            ;
+        }
+        if (robot.compSensor.calibrationFailed()){
+            telemetry.addData("Say", "Compass Calibration Failed");    //
             telemetry.update();
         }
+        robot.compSensor.setMode(CompassSensor.CompassMode.MEASUREMENT_MODE);
+        final double COMP_INIT_DIRECTION = robot.compSensor.getDirection();
+
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        robot.ballDropper.setPosition(0.1);
+//        robot.ballDropper.setPosition(0.1);
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
@@ -109,45 +132,47 @@ public class TestingTeleopTest extends LinearOpMode {
             robot.linearSlide.setPower((double)linearPower);
 
             //ball dropper movement
-            if (gamepad2.y && ballDropperTime.seconds() > 0.5){
-                if (robot.ballDropper.getPosition() == BALL_DROPPER_DOWN_SERVO){
-                    robot.ballDropper.setPosition(BALL_DROPPER_UP_SERVO);
-                    ballDropperTime.reset();
-                } else {
-                    robot.ballDropper.setPosition(BALL_DROPPER_DOWN_SERVO);
-                    ballDropperTime.reset();
-                }
-            }
-
-            //beacon pusher movement
-            if (gamepad1.b && robot.beaconPusher.getPosition() == HOLD_SERVO){
-                if (robot.beaconPusher.getPosition() == BALL_LEFT_SERVO){
-                    robot.beaconPusher.setPosition(BALL_RIGHT_SERVO);
-                } else {
-                    robot.beaconPusher.setPosition(BALL_LEFT_SERVO);
-                }
-                bPusherTime.reset();
-            }
-            if ((robot.beaconPusher.getPosition()==BALL_LEFT_SERVO&&bPusherTime.time() > 1*0.6-0.06)  //going left
-                    || (robot.beaconPusher.getPosition()==BALL_RIGHT_SERVO&&bPusherTime.time() > 2*0.6)){ //going right
-                robot.beaconPusher.setPosition(HOLD_SERVO);
-            }
+//            if (gamepad2.y && ballDropperTime.seconds() > 0.5){
+//                if (robot.ballDropper.getPosition() == BALL_DROPPER_DOWN_SERVO){
+//                    robot.ballDropper.setPosition(BALL_DROPPER_UP_SERVO);
+//                    ballDropperTime.reset();
+//                } else {
+//                    robot.ballDropper.setPosition(BALL_DROPPER_DOWN_SERVO);
+//                    ballDropperTime.reset();
+//                }
+//            }
+//
+//            //beacon pusher movement
+//            if (gamepad1.b && robot.beaconPusher.getPosition() == HOLD_SERVO){
+//                if (robot.beaconPusher.getPosition() == BALL_LEFT_SERVO){
+//                    robot.beaconPusher.setPosition(BALL_RIGHT_SERVO);
+//                } else {
+//                    robot.beaconPusher.setPosition(BALL_LEFT_SERVO);
+//                }
+//                bPusherTime.reset();
+//            }
+//            if ((robot.beaconPusher.getPosition()==BALL_LEFT_SERVO&&bPusherTime.time() > 1*0.6-0.06)  //going left
+//                    || (robot.beaconPusher.getPosition()==BALL_RIGHT_SERVO&&bPusherTime.time() > 2*0.6)){ //going right
+//                robot.beaconPusher.setPosition(HOLD_SERVO);
+//            }
 
             //ball holder movement
             robot.ballHolder.setPower(gamepad2.left_stick_y);
 //
             // Send telemetry message to signify robot running;
-            telemetry.addData("Ball Dropper Position",   "%.2f", robot.ballDropper.getPosition());
-            telemetry.addData("true/false", Double.isNaN(robot.ballDropper.getPosition()));
+//            telemetry.addData("Ball Dropper Position",   "%.2f", robot.ballDropper.getPosition());
+//            telemetry.addData("true/false", Double.isNaN(robot.ballDropper.getPosition()));
             telemetry.addData("left", "%.2f", leftPower);
             telemetry.addData("right", "%.2f", rightPower);
 
-            telemetry.addData("temp", tempString);
+            telemetry.addData("Compass", "%.2f" + " " + "%.2f", COMP_INIT_DIRECTION, robot.compSensor.getDirection());
             telemetry.update();
 
             //Writing files
             if (recordingTime.milliseconds() >= 200) {
-                pw.printf("%.2f" +"%.2f" + "%n", robot.leftMotor.getPower(), robot.rightMotor.getPower());
+                pw.printf("%.2f"+"\t"+"%.2f"+"\t"+"%.2f" + "%n",
+                        robot.leftMotor.getPower(), robot.rightMotor.getPower(),
+                        robot.compSensor.getDirection()-COMP_INIT_DIRECTION);
                 recordingTime.reset();
             }
 
