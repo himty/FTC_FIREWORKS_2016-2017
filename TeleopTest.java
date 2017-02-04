@@ -1,29 +1,3 @@
-/*
-Copyright (c) 2016 Robert Atkinson
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification,
-are permitted (subject to the limitations in the disclaimer below) provided that
-the following conditions are met:
-Redistributions of source code must retain the above copyright notice, this list
-of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this
-list of conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.
-Neither the name of Robert Atkinson nor the names of his contributors may be used to
-endorse or promote products derived from this software without specific prior
-written permission.
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
-LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESSFOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Path;
@@ -48,11 +22,16 @@ public class TeleopTest extends LinearOpMode {
     final double BALL_RIGHT_SERVO = 0.54;
     final double MAX_JOYSTICK_VALUE = 1;
 
-    double temp1, temp2;
     double DELTA_DRIVE_POWER;
     double targetLeftPower;
     double targetRightPower;
     double linearPower;
+
+//    double[] scaleArray = { 0, 10, 40, 90, 160, 250, 360, 490, 640, 810, 1000, 1210,
+//        1440, 1690, 1960, 2250, 2560, 2890, 3240, 3610, 4000};
+    double[] scaleArray = { -1.00, -0.12, 0.0, 0.12, 1.00 };
+    int currIndexR = 3;
+    int currIndexL = 3;
 
     @Override
     public void runOpMode(){
@@ -67,16 +46,16 @@ public class TeleopTest extends LinearOpMode {
 
         DELTA_DRIVE_POWER = robot.leftMotor.getMaxSpeed() / 20;
 
-        //calibrate compass sensor
-        robot.compSensor.setMode(CompassSensor.CompassMode.CALIBRATION_MODE);
-        bPusherTime.reset();
-        while (bPusherTime.seconds() < 4){
-            ;
-        }
-        if (robot.compSensor.calibrationFailed()){
-            telemetry.addData("Say", "Compass Calibration Failed");    //
-            telemetry.update();
-        }
+//        //calibrate compass sensor
+//        robot.compSensor.setMode(CompassSensor.CompassMode.CALIBRATION_MODE);
+//        bPusherTime.reset();
+//        while (bPusherTime.seconds() < 4){
+//            ;
+//        }
+//        if (robot.compSensor.calibrationFailed()){
+//            telemetry.addData("Say", "Compass Calibration Failed");    //
+//            telemetry.update();
+//        }
         robot.compSensor.setMode(CompassSensor.CompassMode.MEASUREMENT_MODE);
 
         // Wait for the game to start (driver presses PLAY)
@@ -87,37 +66,37 @@ public class TeleopTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             //drive train
-            targetLeftPower = (gamepad1.right_stick_y - 2*gamepad1.right_stick_x)*4000;
-            targetRightPower = (gamepad1.right_stick_y + 2 * gamepad1.right_stick_x) * 4000;
+            targetLeftPower = (gamepad1.right_stick_y - 2*gamepad1.right_stick_x);
+            targetRightPower = (gamepad1.right_stick_y + 2 * gamepad1.right_stick_x);
 
             if (gamepad1.right_bumper){
                 targetLeftPower /= 5;
                 targetRightPower /= 5;
             }
 
-            if (robot.leftMotor.getPower()-targetLeftPower > DELTA_DRIVE_POWER){
-                temp1 = robot.leftMotor.getPower() - DELTA_DRIVE_POWER;
-            } else if (robot.leftMotor.getPower()-targetLeftPower < -DELTA_DRIVE_POWER){
-                temp1 = robot.leftMotor.getPower() + DELTA_DRIVE_POWER;
-            } else {
-                temp1 = targetLeftPower;
+            if (scaleArray[currIndexL] > targetLeftPower) {
+                currIndexL--;
+                if (currIndexL < 0) currIndexL = 0;
+            }
+            if (scaleArray[currIndexL] < targetLeftPower) {
+                currIndexL++;
+                if (currIndexL > 6) currIndexL = 6;
             }
 
-            if (robot.rightMotor.getPower()-targetRightPower > DELTA_DRIVE_POWER) {
-                temp2 = robot.rightMotor.getPower() - DELTA_DRIVE_POWER;
-            } else if (robot.rightMotor.getPower()-targetRightPower < -DELTA_DRIVE_POWER){
-                temp2 = robot.rightMotor.getPower() + DELTA_DRIVE_POWER;
-            } else {
-                temp2 = targetRightPower;
+            if (scaleArray[currIndexR] > targetLeftPower) {
+                currIndexR--;
+                if (currIndexR < 0) currIndexR = 0;
+            }
+            if (scaleArray[currIndexR] < targetLeftPower) {
+                currIndexR++;
+                if (currIndexR > 6) currIndexR = 6;
             }
 
-            robot.leftMotor.setPower(temp1);
-            robot.rightMotor.setPower(temp2);
-//            telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
+            robot.leftMotor.setPower(scaleArray[currIndexL]);
+            robot.rightMotor.setPower(scaleArray[currIndexR]);
 
             //linear slide
-            linearPower = (float) scaleInput(-1*gamepad2.right_stick_y);
-            robot.linearSlide.setPower((double)linearPower);
+            robot.linearSlide.setPower(gamepad2.right_stick_y);
 
             //ball dropper movement
 //            if (gamepad2.y && ballDropperTime.seconds() > 0.5){
@@ -163,7 +142,7 @@ public class TeleopTest extends LinearOpMode {
             telemetry.addData("right", "%.2f", robot.rightMotor.getPower());
 
             telemetry.addData("Light", "%.2f %.2f %.2f", robot.lightSensor.getRawLightDetected(), robot.lightSensor.getLightDetected(), robot.lightSensor.getRawLightDetectedMax());
-            telemetry.addData("Max Drive", "%d", robot.rightMotor.getMaxSpeed());
+//            telemetry.addData("Max Drive", "%d", robot.rightMotor.getMaxSpeed());
             telemetry.update();
 
             // Pause for metronome tick.  40 mS each cycle = update 25 times a second.
@@ -172,9 +151,6 @@ public class TeleopTest extends LinearOpMode {
     }
 
     double scaleInput(double dVal)  {
-        double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
-                0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
-
         // get the corresponding index for the scaleInput array.
         int index = (int) ((dVal/MAX_JOYSTICK_VALUE) * 16.0); //number is now <= 1
 
