@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CompassSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -13,8 +15,11 @@ public class HardwareTest
     public DcMotor  rightMotor  = null;
     public DcMotor  linearSlide = null;
     public DcMotor  ballHolder  = null;
-    public Servo    ballDropper         = null;
-    public Servo    beaconPusher= null;
+    public DcMotor  beaconPusher = null;
+//    public Servo    ballDropper = null;
+//    public Servo    beaconPusher= null;
+    public CompassSensor compSensor = null;
+    public LightSensor lightSensor = null;
 
     /* Local OpMode members. */
     HardwareMap hwMap  = null;
@@ -32,17 +37,19 @@ public class HardwareTest
         // Define and Initialize Motors
         leftMotor   = hwMap.dcMotor.get("left_drive");
         rightMotor  = hwMap.dcMotor.get("right_drive");
-        rightMotor.setDirection(DcMotor.Direction.REVERSE);
-        leftMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightMotor.setDirection(DcMotor.Direction.FORWARD);
+        leftMotor.setDirection(DcMotor.Direction.REVERSE);
         linearSlide = hwMap.dcMotor.get("linear_slide");
         ballHolder = hwMap.dcMotor.get("ball_holder");
-
+        beaconPusher = hwMap.dcMotor.get("beacon_pusher");
+        beaconPusher.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // Set all motors to zero power
         leftMotor.setPower(0);
         rightMotor.setPower(0);
         linearSlide.setPower(0);
         ballHolder.setPower(0);
+        beaconPusher.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -50,14 +57,20 @@ public class HardwareTest
         rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         linearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         ballHolder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        beaconPusher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
-        // Define and initialize ALL installed servos.
-        ballDropper = hwMap.servo.get("ball_dropper");
-        beaconPusher = hwMap.servo.get("beacon_pusher");
+//        // Define and initialize ALL installed servos.
+//        ballDropper = hwMap.servo.get("ball_dropper");
+//        beaconPusher = hwMap.servo.get("beacon_pusher");
+//
+//        ballDropper.setPosition(0);
+//        beaconPusher.setPosition(0.5);
 
-        ballDropper.setPosition(0);
-        beaconPusher.setPosition(0.5);
+
+        //Define sensors
+        compSensor = hwMap.compassSensor.get("compass_sensor");
+        lightSensor = hwMap.lightSensor.get("light_sensor");
     }
 
     /***
