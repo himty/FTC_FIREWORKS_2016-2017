@@ -1,29 +1,3 @@
-/*
-Copyright (c) 2016 Robert Atkinson
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification,
-are permitted (subject to the limitations in the disclaimer below) provided that
-the following conditions are met:
-Redistributions of source code must retain the above copyright notice, this list
-of conditions and the following disclaimer.
-Redistributions in binary form must reproduce the above copyright notice, this
-list of conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.
-Neither the name of Robert Atkinson nor the names of his contributors may be used to
-endorse or promote products derived from this software without specific prior
-written permission.
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
-LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESSFOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package org.firstinspires.ftc.teamcode;
 
 import android.os.Environment;
@@ -52,6 +26,14 @@ public class TestingTeleopTest extends LinearOpMode {
     final double BALL_RIGHT_SERVO = 0.54;
 
     final double MAX_JOYSTICK_VALUE = 1;
+
+    double targetLeftPower;
+    double targetRightPower;
+
+    //'Y' if the driver is starting a new move
+    //' ' if not
+    //ex: Y = not turning anymore; now going straight
+    char isSwitching = ' ';
 
     PrintWriter pw = null;
 
@@ -88,25 +70,31 @@ public class TestingTeleopTest extends LinearOpMode {
             e.printStackTrace();
             telemetry.addData("PrintWriter Intialize Error", e.getStackTrace());
             telemetry.update();
+            try {
+                wait(10000000);
+            }
+            catch (Exception ex) {
+                //meh
+            }
+
         }
+
+        //calibrate compass sensor
+//        robot.compSensor.setMode(CompassSensor.CompassMode.CALIBRATION_MODE);
+//        bPusherTime.reset();
+//        while (bPusherTime.seconds() < 4){
+//            ;
+//        }
+//        if (robot.compSensor.calibrationFailed()){
+//            telemetry.addData("Say", "Compass Calibration Failed");    //
+//            telemetry.update();
+//        }
+        robot.compSensor.setMode(CompassSensor.CompassMode.MEASUREMENT_MODE);
+        final double COMP_INIT_DIRECTION = robot.compSensor.getDirection();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Say", "Hello Driver");    //
         telemetry.update();
-
-        //calibrate compass sensor
-        robot.compSensor.setMode(CompassSensor.CompassMode.CALIBRATION_MODE);
-        bPusherTime.reset();
-        while (bPusherTime.seconds() < 4){
-            ;
-        }
-        if (robot.compSensor.calibrationFailed()){
-            telemetry.addData("Say", "Compass Calibration Failed");    //
-            telemetry.update();
-        }
-        robot.compSensor.setMode(CompassSensor.CompassMode.MEASUREMENT_MODE);
-        final double COMP_INIT_DIRECTION = robot.compSensor.getDirection();
-
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -116,16 +104,25 @@ public class TestingTeleopTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             //drive train
-            leftPower = (float) scaleInput(gamepad1.right_stick_y + 2*gamepad1.right_stick_x);
-            rightPower = (float) scaleInput(gamepad1.right_stick_y - 2*gamepad1.right_stick_x);
+            targetLeftPower = (gamepad1.right_stick_y - 2*gamepad1.right_stick_x);
+            targetRightPower = (gamepad1.right_stick_y + 2 * gamepad1.right_stick_x);
+
+            if (targetLeftPower < 0 && targetRightPower > 0) {
+                targetRightPower = targetRightPower * 0.5;
+            }
 
             if (gamepad1.right_bumper){
-                leftPower /= 5;
-                rightPower /= 5;
+                targetLeftPower /= 5;
+                targetRightPower /= 5;
             }
-            robot.leftMotor.setPower((double) -1*leftPower);
-            robot.rightMotor.setPower((double) -1 * rightPower);
-            telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
+
+//            targetLeftPower = scaleInput(Range.clip(targetLeftPower, -1, 1));
+//            targetRightPower = scaleInput(Range.clip(targetLeftPower, -1, 1));
+            robot.leftMotor.setPower(targetLeftPower);
+            robot.leftMotor2.setPower(targetLeftPower);
+            robot.rightMotor.setPower(targetRightPower);
+            robot.rightMotor2.setPower(targetRightPower);
+//            telemetry.addData("Powers", "Left: " + String.format("%.2f", leftPower) + " " + "Right: " + String.format("%.2f", rightPower));
 
             //linear slide
             linearPower = (float) scaleInput(-1*gamepad2.right_stick_y);
@@ -162,17 +159,24 @@ public class TestingTeleopTest extends LinearOpMode {
             // Send telemetry message to signify robot running;
 //            telemetry.addData("Ball Dropper Position",   "%.2f", robot.ballDropper.getPosition());
 //            telemetry.addData("true/false", Double.isNaN(robot.ballDropper.getPosition()));
-            telemetry.addData("left", "%.2f", leftPower);
-            telemetry.addData("right", "%.2f", rightPower);
+//            telemetry.addData("left", "%.2f", leftPower);
+//            telemetry.addData("right", "%.2f", rightPower);
 
-            telemetry.addData("Compass", "%.2f" + " " + "%.2f", COMP_INIT_DIRECTION, robot.compSensor.getDirection());
+
+            isSwitching = ' ';
+            if (gamepad1.x) {
+                isSwitching = 'Y';
+            }
+
+            telemetry.addData("Compass", "%.2f", COMP_INIT_DIRECTION - robot.compSensor.getDirection());
             telemetry.update();
 
             //Writing files
             if (recordingTime.milliseconds() >= 200) {
-                pw.printf("%.2f"+"\t"+"%.2f"+"\t"+"%.2f" + "%n",
+                pw.printf("/"+"%.2f"+"\t"+"%.2f"+"\t"+"%d"+"\t"+"%d"+"\t"+"%.2f"+"\t"+"%c"+ "%n",
                         robot.leftMotor.getPower(), robot.rightMotor.getPower(),
-                        robot.compSensor.getDirection()-COMP_INIT_DIRECTION);
+                        robot.leftMotor.getCurrentPosition(), robot.rightMotor.getCurrentPosition(),
+                        robot.compSensor.getDirection()-COMP_INIT_DIRECTION, isSwitching);
                 recordingTime.reset();
             }
 
