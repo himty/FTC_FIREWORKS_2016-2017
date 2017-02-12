@@ -50,34 +50,20 @@ public class AutoTraceTest extends LinearOpMode{
         // Start
         int numThingsRead = 0;
         double leftPower = 0, rightPower = 0;
-        String scannedThing;
+        String[] scannedThing;
         try {
             Scanner scan = new Scanner(directory);
 
             while (scan.hasNext()) {
-                scannedThing = scan.next();
-
-                switch (numThingsRead) {
-                    case 0:
-                        leftPower = Double.parseDouble(scannedThing);
-                        numThingsRead++;
-                        break;
-                    case 1:
-                        rightPower = Double.parseDouble(scannedThing);
-                        numThingsRead++;
-                        break;
-                    default:
-                        telemetry.addData("Error", "Scanning was weird :/");
+                while (runPeriod.milliseconds() < 200) {
+                    ;
                 }
-
-                if (numThingsRead >= 2 && runPeriod.milliseconds() >= 200) {
-                    numThingsRead = 0;
-                    scan.skip(Pattern.compile("\n"));
-                    robot.leftMotor.setPower(leftPower);
-                    robot.leftMotor2.setPower(leftPower);
-                    robot.rightMotor.setPower(rightPower);
-                    robot.rightMotor2.setPower(rightPower);
-                }
+                
+                scannedThing = scan.nextLine().split("\\s+");
+                robot.leftMotor.setPower(Double.parseDouble(scannedThing[0]));
+                robot.leftMotor2.setPower(Double.parseDouble(scannedThing[0]));
+                robot.rightMotor.setPower(Double.parseDouble(scannedThing[1]));
+                robot.rightMotor2.setPower(Double.parseDouble(scannedThing[1]));
             }
         }
         catch (Exception e) {
