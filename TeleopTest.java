@@ -22,6 +22,8 @@ public class TeleopTest extends LinearOpMode {
     double targetLeftPower;
     double targetRightPower;
 
+    double INIT_COMPASS_VALUE;
+
     @Override
     public void runOpMode(){
         /* Initialize the hardware variables.
@@ -44,6 +46,7 @@ public class TeleopTest extends LinearOpMode {
 //            telemetry.update();
 //        }
         robot.compSensor.setMode(CompassSensor.CompassMode.MEASUREMENT_MODE);
+        INIT_COMPASS_VALUE = robot.compSensor.getDirection();
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Say", "Hello Driver");    //
@@ -82,13 +85,22 @@ public class TeleopTest extends LinearOpMode {
             robot.ballHolder.setPower(gamepad2.left_stick_y);
 
             //beacon pusher movement
-//            if (gamepad2.dpad_up){
-//                robot.beaconPusher.setPower(0.5);
-//            } else if (gamepad2.dpad_down) {
-//                robot.beaconPusher.setPower(-0.5);
-//            } else {
-//                robot.beaconPusher.setPower(0);
-//            }
+            if (gamepad1.dpad_up){
+                robot.beaconPusher.setPower(0.5);
+            } else if (gamepad1.dpad_down) {
+                robot.beaconPusher.setPower(-0.5);
+            } else {
+                robot.beaconPusher.setPower(0);
+            }
+
+            //popper
+            if (gamepad2.dpad_up){
+                robot.popper.setPower(1);
+            } else if (gamepad2.dpad_down) {
+                robot.popper.setPower(-1);
+            } else {
+                robot.popper.setPower(0);
+            }
 //
             // Send telemetry message to signify robot running;
 //            telemetry.addData("Ball Dropper Position",   "%.2f", robot.ballDropper.getPosition());
@@ -97,7 +109,7 @@ public class TeleopTest extends LinearOpMode {
             telemetry.addData("right", "%.2f", robot.rightMotor.getPower());
 
             telemetry.addData("Light", "%.2f %.2f %.2f", robot.lightSensor.getRawLightDetected(), robot.lightSensor.getLightDetected(), robot.lightSensor.getRawLightDetectedMax());
-//            telemetry.addData("Max Drive", "%d", robot.rightMotor.getMaxSpeed());
+            telemetry.addData("Compass", "%.2f", robot.compSensor.getDirection()-INIT_COMPASS_VALUE);
             telemetry.update();
 
             // Pause for metronome tick.  40 mS each cycle = update 25 times a second.
