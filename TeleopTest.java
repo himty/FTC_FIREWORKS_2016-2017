@@ -95,9 +95,9 @@ public class TeleopTest extends LinearOpMode {
 
             //popper
             if (gamepad2.dpad_up){
-                robot.popper.setPower(1);
+                robot.popper.setPower(0.8);
             } else if (gamepad2.dpad_down) {
-                robot.popper.setPower(-1);
+                robot.popper.setPower(-0.8);
             } else {
                 robot.popper.setPower(0);
             }
