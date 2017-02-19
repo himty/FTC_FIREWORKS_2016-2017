@@ -19,7 +19,7 @@ public class HardwareTest
     public DcMotor  ballHolder  = null;
     public DcMotor  beaconPusher = null;
     public DcMotor  popper      = null;
-//    public Servo    ballDropper = null;
+    //    public Servo    ballDropper = null;
 //    public Servo    beaconPusher= null;
     public CompassSensor compSensor = null;
     public LightSensor lightSensor = null;
